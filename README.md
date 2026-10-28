@@ -1,4 +1,4 @@
-# hailo-h10-rpi5
+# hailo-h10-rpi5-builder
 
 Build Hailo's current software for the **Raspberry Pi AI HAT+ 2 (Hailo-10H) on a Raspberry Pi 5**
 from Hailo's public sources: the PCIe driver, the firmware, HailoRT, the Python bindings,
@@ -41,7 +41,7 @@ for the AI HATs.
 First read Hailo's firmware licence (see [The firmware licence](#the-firmware-licence)). Then:
 
 ```sh
-git clone https://github.com/abagonhishead/hailo-h10-rpi5 && cd hailo-h10-rpi5
+git clone https://github.com/abagonhishead/hailo-h10-rpi5-builder && cd hailo-h10-rpi5-builder
 sudo ./scripts/deps.sh        # build tools and libraries, from Raspberry Pi OS
 export ACCEPT_HAILO_FIRMWARE_EULA=yes   # only if you accept Hailo's firmware licence
 ./build.sh                    # fetch and build everything into build/stage: changes nothing yet
@@ -73,13 +73,13 @@ which you should only do once you've read the licence and agree to it. This appl
 ### What the install does
 
 `install.sh` asks before it changes anything, and backs up the current state (package list,
-firmware) to `/var/backups/hailo-h10-rpi5/`. The driver is reloaded, so nothing may have the
+firmware) to `/var/backups/hailo-h10-rpi5-builder/`. The driver is reloaded, so nothing may have the
 Hailo-10H open: it stops hailo-ollama itself, and lists anything else using the device (your own
 programs, a `hailortcli monitor`) for you to stop first. Then it:
 
 1. Removes Raspberry Pi's Hailo packages if they're installed (`hailo-h10-all` and the packages
    it pulls in, plus the Hailo-8 runtime `hailort`, which apt otherwise reaches for), and pins
-   them in `/etc/apt/preferences.d/hailo-h10-rpi5` so apt doesn't put them back.
+   them in `/etc/apt/preferences.d/hailo-h10-rpi5-builder` so apt doesn't put them back.
 2. Installs the driver with DKMS, and the firmware in `/lib/firmware/hailo/hailo10h`.
 3. Copies HailoRT, hailo-ollama and TAPPAS into `/usr`, and `hailo_platform` into the system
    python3.
@@ -87,9 +87,9 @@ programs, a `hailortcli monitor`) for you to stop first. Then it:
    service. The service isn't started unless it was running before.
 5. Resets the Hailo-10H so that it boots the new firmware, without rebooting the Pi.
 
-It records every file it installs in `/var/lib/hailo-h10-rpi5/installed-files.txt`.
+It records every file it installs in `/var/lib/hailo-h10-rpi5-builder/installed-files.txt`.
 `sudo ./uninstall.sh` removes them again. After that, `sudo rm
-/etc/apt/preferences.d/hailo-h10-rpi5 && sudo apt install hailo-h10-all` goes back to Raspberry
+/etc/apt/preferences.d/hailo-h10-rpi5-builder && sudo apt install hailo-h10-all` goes back to Raspberry
 Pi's packages, if the pin file is still there.
 
 ### Another release
