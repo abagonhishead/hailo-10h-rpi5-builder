@@ -1,0 +1,18 @@
+[Unit]
+Description=hailo-ollama (Ollama-compatible API on the Hailo-10H)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=hailo-ollama
+Group=hailo-ollama
+WorkingDirectory=/var/log/hailo-ollama
+ExecStart=/usr/bin/hailo-ollama
+Restart=always
+RestartSec=3
+# Share the Hailo-10H with other programs that open it with group_id "SHARED" (see the README)
+Environment=HAILO_OLLAMA_VDEVICE_GROUP_ID=SHARED
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,7 @@
+# Everything fetched or built: none of Hailo's code or firmware is kept in this repository
+/src/
+/build/
+/logs/
+/models/
+*.log
+__pycache__/
