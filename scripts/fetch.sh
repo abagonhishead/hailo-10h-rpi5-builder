@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
 # Download Hailo's sources (git tags v$HAILO_VERSION) and the Hailo-10H firmware into src/ and
 # build/. Nothing of Hailo's is kept in this repository: it's all fetched from Hailo here.
-# The firmware is under Hailo's licence: you're shown it and asked to accept it, unless you set
-# ACCEPT_HAILO_FIRMWARE_EULA=yes (having read it), or FIRMWARE_FROM (below).
+# The firmware is under Hailo's licence: this stops unless you've set
+# ACCEPT_HAILO_FIRMWARE_EULA=yes yourself, having read it.
 . "$(dirname "$0")/lib.sh"
+require_eula
 mkdir -p "$SRC" "$BUILD"
 
 clone() {   # clone <name>: github.com/hailo-ai/<name> at the release tag
@@ -27,9 +28,8 @@ if [ ! -d "$SRC/tappas/core/open_source/xtensor_stack" ]; then
     run tappas-externals env TAPPAS_WORKSPACE="$SRC/tappas" bash "$SRC/tappas/scripts/build_scripts/clone_external_packages.sh"
 fi
 
-# The firmware is Hailo's, under its own licence: read it and agree before it's downloaded
 # FIRMWARE_FROM=<dir>: use a copy you already have (e.g. /lib/firmware/hailo/hailo10h from an
-# earlier install of the same version) instead of downloading it
+# earlier install of the same version) instead of downloading it. It's still Hailo's licence.
 fw=$BUILD/firmware-$VERSION
 if [ -n "${FIRMWARE_FROM:-}" ] && [ ! -f "$fw/fitImage" ]; then
     [ -f "$FIRMWARE_FROM/fitImage" ] || { echo "No firmware in $FIRMWARE_FROM (no fitImage)." >&2; exit 1; }
@@ -37,16 +37,6 @@ if [ -n "${FIRMWARE_FROM:-}" ] && [ ! -f "$fw/fitImage" ]; then
     rm -rf "$fw" && mkdir -p "$fw" && cp "$FIRMWARE_FROM"/* "$fw"/
 fi
 if [ ! -f "$fw/fitImage" ]; then
-    eula=$SRC/hailort/hailort/hailo_firmware_eula
-    if [ "${ACCEPT_HAILO_FIRMWARE_EULA:-}" != yes ]; then
-        echo
-        echo "The Hailo-10H firmware is licensed by Hailo under these terms ($eula):"
-        echo
-        fold -s -w 100 "$eula" | sed 's/^/    /'
-        echo
-        read -r -p "Do you accept them? Type yes to download the firmware: " answer
-        [ "$answer" = yes ] || { echo "Not downloading the firmware; nothing else is affected."; exit 1; }
-    fi
     step "Firmware $VERSION"
     mkdir -p "$fw.tmp"
     curl -fsSL "$FIRMWARE_URL" | tar xz -C "$fw.tmp"

@@ -38,11 +38,14 @@ for the AI HATs.
 
 ## Build and install
 
+First read Hailo's firmware licence (see [The firmware licence](#the-firmware-licence)). Then:
+
 ```sh
 git clone https://github.com/abagonhishead/hailo-h10-rpi5 && cd hailo-h10-rpi5
 sudo ./scripts/deps.sh        # build tools and libraries, from Raspberry Pi OS
+export ACCEPT_HAILO_FIRMWARE_EULA=yes   # only if you accept Hailo's firmware licence
 ./build.sh                    # fetch and build everything into build/stage: changes nothing yet
-sudo ./install.sh             # install it (replacing Raspberry Pi's Hailo packages, if any)
+sudo --preserve-env=ACCEPT_HAILO_FIRMWARE_EULA ./install.sh   # install it
                               # HAILO_GROUP=<group>: who may use the device (default: hailo)
 sudo usermod -aG hailo $USER  # then log out and in again
 hailortcli fw-control identify
@@ -50,14 +53,22 @@ hailortcli fw-control identify
 
 The last command should report the firmware version and `HAILO10H`.
 
-`./build.sh` shows Hailo's firmware licence and asks you to accept it before downloading the
-firmware. To skip the question, set `ACCEPT_HAILO_FIRMWARE_EULA=yes` (once you've read it), or
-use firmware you already have for the same version with
-`FIRMWARE_FROM=/lib/firmware/hailo/hailo10h ./build.sh`.
+`FIRMWARE_FROM=/lib/firmware/hailo/hailo10h ./build.sh` uses firmware you already have for the
+same version, instead of downloading it.
 
 `./build.sh --no-tappas` or `--no-ollama` leaves those pieces out. The builds use every CPU core;
 `JOBS=2 ./build.sh` uses fewer, if a Pi with little memory runs short. Each step logs to `logs/`,
 and when one fails it shows the end of its log.
+
+### The firmware licence
+
+The Hailo-10H's firmware is Hailo's, under
+[Hailo's firmware licence](https://github.com/hailo-ai/hailort/blob/v5.4.0/hailort/hailo_firmware_eula):
+among other things, it may only be used with Hailo hardware you've bought. These scripts don't
+accept it for you, and there's no prompt to click through. `build.sh`, `scripts/fetch.sh` and
+`install.sh` stop with an error until you've set `ACCEPT_HAILO_FIRMWARE_EULA=yes` yourself,
+which you should only do once you've read the licence and agree to it. This applies to
+`FIRMWARE_FROM` too.
 
 ### What the install does
 

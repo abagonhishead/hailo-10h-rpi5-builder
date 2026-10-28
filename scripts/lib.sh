@@ -47,3 +47,22 @@ hailo_pci() {
     done
     return 1
 }
+
+# The Hailo-10H firmware is Hailo's, under Hailo's licence. Nothing here accepts it for you: you
+# read it, then set ACCEPT_HAILO_FIRMWARE_EULA=yes yourself. Without that, stop.
+EULA_URL=https://github.com/hailo-ai/hailort/blob/v$VERSION/hailort/hailo_firmware_eula
+require_eula() {
+    [ "${ACCEPT_HAILO_FIRMWARE_EULA:-}" = yes ] && return 0
+    cat >&2 <<MSG
+Error: the Hailo-10H firmware is licensed by Hailo, and you must accept its licence before it's
+downloaded or installed. Read it here:
+
+    $EULA_URL
+
+If you accept it, set this yourself and run the command again:
+
+    export ACCEPT_HAILO_FIRMWARE_EULA=yes
+MSG
+    [ "$(id -u)" = 0 ] && echo "(sudo doesn't pass it through: run sudo ACCEPT_HAILO_FIRMWARE_EULA=yes $0)" >&2
+    exit 1
+}

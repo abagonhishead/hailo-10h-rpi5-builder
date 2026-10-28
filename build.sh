@@ -1,11 +1,13 @@
 #!/usr/bin/env bash
 # Fetch and build the whole stack into build/stage. Changes nothing on the system: install.sh
-# does that. Run scripts/deps.sh (as root) first.
+# does that. Run scripts/deps.sh (as root) first, and accept Hailo's firmware licence by setting
+# ACCEPT_HAILO_FIRMWARE_EULA=yes yourself.
 #   ./build.sh                  everything
 #   ./build.sh --no-tappas      skip TAPPAS (the vision pipelines)
 #   ./build.sh --no-ollama      skip hailo-ollama
 . "$(dirname "$0")/scripts/lib.sh"
 check_pi5
+require_eula      # before anything's downloaded
 tappas=1 ollama=1
 for a in "$@"; do
     case $a in

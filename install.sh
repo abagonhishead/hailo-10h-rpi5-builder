@@ -2,12 +2,13 @@
 # Install what build.sh built (run as root): the PCIe driver (DKMS), the firmware, HailoRT,
 # hailortcli, the GStreamer plugin, hailo_platform for python3, hailo-ollama and TAPPAS.
 # Raspberry Pi's own Hailo packages, if installed, are removed first and held back.
-#   sudo ./install.sh            asks before removing anything
-#   sudo ./install.sh --yes      doesn't ask
+#   sudo ACCEPT_HAILO_FIRMWARE_EULA=yes ./install.sh          asks before removing anything
+#   sudo ACCEPT_HAILO_FIRMWARE_EULA=yes ./install.sh --yes    doesn't ask
 # HAILO_GROUP (default hailo): the group that may use the Hailo-10H.
 . "$(dirname "$0")/scripts/lib.sh"
 need_root
 check_pi5
+require_eula      # it installs Hailo's firmware
 yes=0
 [ "${1:-}" = --yes ] && yes=1
 GROUP=${HAILO_GROUP:-hailo}
