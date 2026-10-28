@@ -3,7 +3,7 @@
 # on with: sudo apt install hailo-h10-all
 . "$(dirname "$0")/scripts/lib.sh"
 need_root
-MANIFEST=/var/lib/hailo-h10-rpi5-builder/installed-files.txt
+MANIFEST=/var/lib/hailo-10h-rpi5-builder/installed-files.txt
 [ -f "$MANIFEST" ] || { echo "Nothing to remove: $MANIFEST isn't there." >&2; exit 1; }
 systemctl disable --now hailo-ollama 2>/dev/null || true
 modprobe -r hailo1x_pci 2>/dev/null || true
@@ -18,4 +18,4 @@ ldconfig
 systemctl daemon-reload
 udevadm control --reload
 rm -f "$MANIFEST"
-echo "Removed. The hailo-ollama user, the device group, its models in /usr/share/hailo-ollama and the backups in /var/backups/hailo-h10-rpi5-builder are left in place."
+echo "Removed. The hailo-ollama user, the device group, its models in /usr/share/hailo-ollama and the backups in /var/backups/hailo-10h-rpi5-builder are left in place."

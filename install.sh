@@ -12,7 +12,7 @@ require_eula      # it installs Hailo's firmware
 yes=0
 [ "${1:-}" = --yes ] && yes=1
 GROUP=${HAILO_GROUP:-hailo}
-STATE=/var/lib/hailo-h10-rpi5-builder
+STATE=/var/lib/hailo-10h-rpi5-builder
 MANIFEST=$STATE/installed-files.txt
 FW=$BUILD/firmware-$VERSION
 [ -x "$STAGE/usr/bin/hailortcli" ] && [ -f "$FW/fitImage" ] || { echo "Nothing built yet: run ./build.sh first." >&2; exit 1; }
@@ -30,7 +30,7 @@ fi
 echo "Anything using the Hailo-10H loses it for a few seconds while the driver reloads."
 
 step "Back up the current state"
-bk=/var/backups/hailo-h10-rpi5-builder/$(date +%Y%m%d-%H%M%S)
+bk=/var/backups/hailo-10h-rpi5-builder/$(date +%Y%m%d-%H%M%S)
 mkdir -p "$bk"
 dpkg -l | awk '/hailo|h10/ {print $2, $3}' > "$bk/packages.txt"
 [ -d /lib/firmware/hailo ] && cp -a /lib/firmware/hailo "$bk/firmware"
@@ -52,8 +52,8 @@ if [ -n "$installed" ]; then
     step "Remove Raspberry Pi's Hailo packages"
     run apt-remove env DEBIAN_FRONTEND=noninteractive apt-get remove -y --allow-change-held-packages $installed
 fi
-cat > /etc/apt/preferences.d/hailo-h10-rpi5-builder <<PIN
-# HailoRT $VERSION is built from source (hailo-h10-rpi5-builder): keep apt from installing Raspberry Pi's
+cat > /etc/apt/preferences.d/hailo-10h-rpi5-builder <<PIN
+# HailoRT $VERSION is built from source (hailo-10h-rpi5-builder): keep apt from installing Raspberry Pi's
 # Hailo packages over it. Remove this file to go back to them.
 Package: $(echo $RPI_PKGS)
 Pin: origin archive.raspberrypi.com
@@ -105,7 +105,7 @@ step "Record what was installed ($MANIFEST)"
 { (cd "$STAGE" && find usr ! -type d | sed 's#^#/#')
   find /lib/firmware/hailo/hailo10h -type f
   echo /etc/udev/rules.d/60-hailo1x.rules
-  echo /etc/apt/preferences.d/hailo-h10-rpi5-builder
+  echo /etc/apt/preferences.d/hailo-10h-rpi5-builder
   [ -x /usr/bin/hailo-ollama ] && echo /etc/systemd/system/hailo-ollama.service
 } | sort -u > "$MANIFEST"
 
