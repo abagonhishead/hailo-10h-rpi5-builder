@@ -43,11 +43,17 @@ git clone https://github.com/abagonhishead/hailo-h10-rpi5 && cd hailo-h10-rpi5
 sudo ./scripts/deps.sh        # build tools and libraries, from Raspberry Pi OS
 ./build.sh                    # fetch and build everything into build/stage: changes nothing yet
 sudo ./install.sh             # install it (replacing Raspberry Pi's Hailo packages, if any)
+                              # HAILO_GROUP=<group>: who may use the device (default: hailo)
 sudo usermod -aG hailo $USER  # then log out and in again
 hailortcli fw-control identify
 ```
 
 The last command should report the firmware version and `HAILO10H`.
+
+`./build.sh` shows Hailo's firmware licence and asks you to accept it before downloading the
+firmware. To skip the question, set `ACCEPT_HAILO_FIRMWARE_EULA=yes` (once you've read it), or
+use firmware you already have for the same version with
+`FIRMWARE_FROM=/lib/firmware/hailo/hailo10h ./build.sh`.
 
 `./build.sh --no-tappas` or `--no-ollama` leaves those pieces out. The builds use every CPU core;
 `JOBS=2 ./build.sh` uses fewer, if a Pi with little memory runs short. Each step logs to `logs/`,
@@ -56,7 +62,9 @@ and when one fails it shows the end of its log.
 ### What the install does
 
 `install.sh` asks before it changes anything, and backs up the current state (package list,
-firmware) to `/var/backups/hailo-h10-rpi5/`. Then it:
+firmware) to `/var/backups/hailo-h10-rpi5/`. The driver is reloaded, so nothing may have the
+Hailo-10H open: it stops hailo-ollama itself, and lists anything else using the device (your own
+programs, a `hailortcli monitor`) for you to stop first. Then it:
 
 1. Removes Raspberry Pi's Hailo packages if they're installed (`hailo-h10-all` and the packages
    it pulls in, plus the Hailo-8 runtime `hailort`, which apt otherwise reaches for), and pins

@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 # Download Hailo's sources (git tags v$HAILO_VERSION) and the Hailo-10H firmware into src/ and
 # build/. Nothing of Hailo's is kept in this repository: it's all fetched from Hailo here.
+# The firmware is under Hailo's licence: you're shown it and asked to accept it, unless you set
+# ACCEPT_HAILO_FIRMWARE_EULA=yes (having read it), or FIRMWARE_FROM (below).
 . "$(dirname "$0")/lib.sh"
 mkdir -p "$SRC" "$BUILD"
 
@@ -26,7 +28,14 @@ if [ ! -d "$SRC/tappas/core/open_source/xtensor_stack" ]; then
 fi
 
 # The firmware is Hailo's, under its own licence: read it and agree before it's downloaded
+# FIRMWARE_FROM=<dir>: use a copy you already have (e.g. /lib/firmware/hailo/hailo10h from an
+# earlier install of the same version) instead of downloading it
 fw=$BUILD/firmware-$VERSION
+if [ -n "${FIRMWARE_FROM:-}" ] && [ ! -f "$fw/fitImage" ]; then
+    [ -f "$FIRMWARE_FROM/fitImage" ] || { echo "No firmware in $FIRMWARE_FROM (no fitImage)." >&2; exit 1; }
+    step "Firmware from $FIRMWARE_FROM"
+    rm -rf "$fw" && mkdir -p "$fw" && cp "$FIRMWARE_FROM"/* "$fw"/
+fi
 if [ ! -f "$fw/fitImage" ]; then
     eula=$SRC/hailort/hailort/hailo_firmware_eula
     if [ "${ACCEPT_HAILO_FIRMWARE_EULA:-}" != yes ]; then

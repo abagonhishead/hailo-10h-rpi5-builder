@@ -21,7 +21,7 @@ mkdir -p "$STATE"
 # apt reaches for when they go (hailo-ai/hailo-rpi5-examples#195)
 RPI_PKGS="hailo-all hailo-h10-all h10-hailort python3-h10-hailort h10-hailort-pcie-driver hailo-gen-ai-model-zoo
           hailo-tappas-core python3-hailo-tappas rpicam-apps-hailo-postprocess hailort hailort-pcie-driver python3-hailort"
-installed=$(dpkg-query -W -f '${db:Status-Abbrev} ${Package}\n' $RPI_PKGS 2>/dev/null | awk '$1 ~ /^.i/ {print $2}' | xargs)
+installed=$(dpkg-query -W -f '${db:Status-Abbrev} ${Package}\n' $RPI_PKGS 2>/dev/null | awk '$1 ~ /^.i/ {print $2}' | xargs || true)
 if [ -n "$installed" ]; then
     echo "These Raspberry Pi packages will be removed (and kept from coming back): $installed"
     if [ $yes = 0 ]; then read -r -p "Go ahead? [y/N] " a; [ "$a" = y ] || exit 1; fi
@@ -38,6 +38,14 @@ echo "Backed up to $bk"
 ollama_was_on=0
 systemctl is-enabled -q hailo-ollama 2>/dev/null && ollama_was_on=1
 systemctl stop hailo-ollama 2>/dev/null || true
+# The driver can't be reloaded while anything has the device open
+holders=$(fuser /dev/h1x-* /dev/hailo* 2>/dev/null | xargs || true)
+if [ -n "$holders" ]; then
+    echo "These processes have the Hailo-10H open; stop them, then run this again:" >&2
+    ps -o pid=,user=,args= -p "${holders// /,}" >&2
+    [ $ollama_was_on = 1 ] && systemctl start hailo-ollama
+    exit 1
+fi
 
 if [ -n "$installed" ]; then
     step "Remove Raspberry Pi's Hailo packages"
@@ -52,7 +60,7 @@ Pin-Priority: -1
 PIN
 
 step "PCIe driver (DKMS)"
-modprobe -r hailo1x_pci 2>/dev/null || true
+if lsmod | grep -q '^hailo1x_pci '; then modprobe -r hailo1x_pci; fi
 run driver make -C "$SRC/hailort-drivers/linux/pcie" install_dkms
 
 step "Firmware"
@@ -104,7 +112,7 @@ step "Load the driver and boot the new firmware"
 # The Hailo-10H keeps running the firmware it booted with until it's reset, and a new driver
 # refuses old firmware ("Mismatch Driver version"). A PCIe function reset makes it boot the new
 # files, without rebooting the Pi.
-modprobe -r hailo1x_pci 2>/dev/null || true
+if lsmod | grep -q '^hailo1x_pci '; then modprobe -r hailo1x_pci; fi
 if pci=$(hailo_pci); then
     echo 1 > "/sys/bus/pci/devices/$pci/reset"
 else
